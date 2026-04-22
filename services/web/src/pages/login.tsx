@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Heart, AlertCircle, Loader2, ShieldCheck, Clock, Activity, Lock } from 'lucide-react';
+import { Heart, AlertCircle, Loader2, ShieldCheck, Activity, Lock, Hash, Pill, FileText, CreditCard } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Client-side brute-force protection: exponential backoff after failed attempts
@@ -115,28 +115,43 @@ export function LoginPage() {
           <div className="max-w-sm space-y-6">
             <div className="space-y-3">
               <h1 className="text-3xl font-bold leading-tight tracking-tight">
-                Streamline your<br />clinical workflow
+                Secure prescription<br />management
               </h1>
               <p className="text-sm text-white/70 leading-relaxed">
-                A unified platform for prescriptions, dispensation, patient management, and billing.
+                Every prescription is cryptographically hashed and verified — from the doctor's order through pharmacy dispensation to patient billing.
               </p>
             </div>
 
             <div className="space-y-2.5">
               <FeatureItem
-                icon={<ShieldCheck className="h-4 w-4" />}
-                title="HIPAA Compliant"
-                description="End-to-end encryption with audit trails"
+                icon={<Hash className="h-4 w-4" />}
+                title="Hash-Verified Prescriptions"
+                description="SHA-256 hashing ensures prescriptions are tamper-proof and auditable"
               />
               <FeatureItem
-                icon={<Clock className="h-4 w-4" />}
-                title="Real-Time Dispensation"
-                description="QR-based prescription fulfillment"
+                icon={<Pill className="h-4 w-4" />}
+                title="FIFO Inventory Tracking"
+                description="Automated batch-level drug dispensation with expiry management"
+              />
+              <FeatureItem
+                icon={<FileText className="h-4 w-4" />}
+                title="Immutable Ledger"
+                description="Append-only financial trail with chained hashes for billing integrity"
+              />
+              <FeatureItem
+                icon={<ShieldCheck className="h-4 w-4" />}
+                title="Role-Based Access Control"
+                description="Doctors, pharmacists, and admins each see only what they need"
+              />
+              <FeatureItem
+                icon={<CreditCard className="h-4 w-4" />}
+                title="Insurance & Billing"
+                description="Automated copay calculation, claim submission, and invoice generation"
               />
               <FeatureItem
                 icon={<Activity className="h-4 w-4" />}
-                title="Role-Based Access"
-                description="Granular permissions for all staff"
+                title="Real-Time Clinical Workflow"
+                description="Encounter tracking, shift management, and live prescription status"
               />
             </div>
           </div>
