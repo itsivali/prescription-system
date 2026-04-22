@@ -91,38 +91,39 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-stone-50 via-orange-50/30 to-stone-100">
+    <div className="flex min-h-screen bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100">
       {/* Left panel — branding */}
-      <div className="hidden lg:flex lg:w-[480px] xl:w-[520px] relative overflow-hidden bg-gradient-to-br from-[#0d7377] via-[#0a6165] to-[#064e52]">
-        {/* Warm decorative shapes */}
-        <div className="absolute -top-20 -left-20 h-80 w-80 rounded-full bg-white/5" />
-        <div className="absolute bottom-24 -right-12 h-56 w-56 rounded-full bg-amber-400/8" />
-        <div className="absolute top-1/3 left-1/5 h-40 w-40 rounded-full bg-white/4" />
+      <div className="hidden lg:flex lg:w-[500px] xl:w-[540px] relative overflow-hidden bg-gradient-to-br from-[#0e8084] via-[#0a6a6e] to-[#054a4e]">
+        {/* Decorative shapes */}
+        <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-white/[0.04] blur-sm" />
+        <div className="absolute bottom-20 -right-16 h-64 w-64 rounded-full bg-amber-300/[0.06] blur-md" />
+        <div className="absolute top-1/4 left-1/6 h-48 w-48 rounded-full bg-white/[0.03] blur-sm" />
+        <div className="absolute bottom-1/3 left-1/3 h-32 w-32 rounded-full bg-emerald-300/[0.05] blur-lg" />
 
         <div className="relative z-10 flex flex-col justify-between p-10 text-white">
           {/* Top logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm shadow-lg shadow-black/10">
               <Heart className="h-5 w-5" />
             </div>
             <div>
               <p className="text-base font-bold tracking-tight">MedFlow</p>
-              <p className="text-[11px] text-white/60">Hospital Management</p>
+              <p className="text-[11px] text-white/50">Hospital Management</p>
             </div>
           </div>
 
           {/* Center content */}
-          <div className="max-w-sm space-y-6">
+          <div className="max-w-sm space-y-7">
             <div className="space-y-3">
-              <h1 className="text-3xl font-bold leading-tight tracking-tight">
+              <h1 className="text-[28px] font-bold leading-tight tracking-tight">
                 Secure prescription<br />management
               </h1>
-              <p className="text-sm text-white/70 leading-relaxed">
+              <p className="text-[13px] text-white/65 leading-relaxed">
                 Every prescription is cryptographically hashed and verified — from the doctor's order through pharmacy dispensation to patient billing.
               </p>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <FeatureItem
                 icon={<Hash className="h-4 w-4" />}
                 title="Hash-Verified Prescriptions"
@@ -156,7 +157,7 @@ export function LoginPage() {
             </div>
           </div>
 
-          <p className="text-[11px] text-white/30">
+          <p className="text-[11px] text-white/25">
             &copy; {new Date().getFullYear()} MedFlow Health Systems
           </p>
         </div>
@@ -164,10 +165,10 @@ export function LoginPage() {
 
       {/* Right panel — login form */}
       <div className="flex flex-1 items-center justify-center px-6">
-        <div className="w-full max-w-[380px] animate-fade-in">
+        <div className="w-full max-w-[400px] animate-fade-in">
           {/* Mobile logo */}
-          <div className="mb-6 flex items-center gap-2.5 lg:hidden">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0d7377] text-white">
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white shadow-md">
               <Heart className="h-5 w-5" />
             </div>
             <div>
@@ -176,8 +177,8 @@ export function LoginPage() {
             </div>
           </div>
 
-          <div className="mb-6 space-y-1">
-            <h2 className="text-xl font-bold tracking-tight">Welcome back</h2>
+          <div className="mb-7 space-y-1.5">
+            <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
             <p className="text-sm text-muted-foreground">
               Sign in to your dashboard
             </p>
@@ -229,9 +230,9 @@ export function LoginPage() {
           </div>
 
           {/* Email / Password form */}
-          <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             {error && (
-              <div className="flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/5 p-2.5 text-[13px] text-destructive animate-slide-up">
+              <div className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-[13px] text-destructive shadow-sm animate-slide-up">
                 {isLockedOut ? (
                   <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 ) : (
@@ -291,7 +292,7 @@ export function LoginPage() {
 
             <Button
               type="submit"
-              className="h-10 w-full text-[13px] font-semibold shadow-sm mt-1"
+              className="h-11 w-full text-[13px] font-semibold mt-1.5"
               disabled={loading || isLockedOut}
             >
               {loading ? (
@@ -311,8 +312,8 @@ export function LoginPage() {
           </form>
 
           {/* Demo credentials */}
-          <div className="mt-5 rounded-lg border border-border/60 bg-white/60 p-3.5">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+          <div className="mt-6 rounded-2xl border border-border/50 bg-white/70 p-4 shadow-[var(--shadow-card)] backdrop-blur-sm">
+            <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
               Demo Accounts
             </p>
             <div className="space-y-1.5 text-[12px] text-muted-foreground">
@@ -345,11 +346,13 @@ function FeatureItem({
   description: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg bg-white/8 px-3.5 py-3 backdrop-blur-sm">
-      <div className="text-amber-200/80">{icon}</div>
+    <div className="flex items-center gap-3 rounded-xl bg-white/[0.07] px-3.5 py-2.5 backdrop-blur-sm transition-colors hover:bg-white/[0.11]">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-amber-200/90">
+        {icon}
+      </div>
       <div>
-        <p className="text-[13px] font-semibold">{title}</p>
-        <p className="text-[11px] text-white/50">{description}</p>
+        <p className="text-[12.5px] font-semibold leading-tight">{title}</p>
+        <p className="text-[10.5px] text-white/45 leading-snug">{description}</p>
       </div>
     </div>
   );
@@ -368,7 +371,7 @@ function OAuthButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-10 flex-1 items-center justify-center rounded-lg border border-border/80 bg-white/90 text-sm text-foreground shadow-sm transition-all hover:bg-white hover:shadow-md active:scale-[0.98]"
+      className="flex h-11 flex-1 items-center justify-center rounded-xl border border-border/60 bg-white/90 text-sm text-foreground shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-white hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-px active:translate-y-0"
     >
       {icon}
     </button>
@@ -390,7 +393,7 @@ function DemoCredential({
     <button
       type="button"
       onClick={() => onFill(email, password)}
-      className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left transition-colors hover:bg-stone-100"
+      className="flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-left transition-all duration-200 hover:bg-accent/60 hover:shadow-sm"
     >
       <span>
         <span className="font-medium text-foreground">{role}</span>

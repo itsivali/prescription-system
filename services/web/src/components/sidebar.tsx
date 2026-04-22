@@ -107,10 +107,10 @@ export function Sidebar() {
   const meta = ROLE_META[user.role];
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar">
+    <aside className="flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar shadow-[var(--shadow-sidebar)]">
       {/* ── Brand ─────────────────────────────────────────────── */}
       <div className="flex h-16 shrink-0 items-center gap-3 px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white shadow-sm">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white shadow-md">
           <Heart className="h-[18px] w-[18px]" />
         </div>
         <div className="min-w-0">
@@ -145,10 +145,10 @@ export function Sidebar() {
                       key={item.href}
                       to={item.href}
                       className={cn(
-                        'group flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all',
+                        'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200',
                         isActive
-                          ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm'
-                          : 'text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
+                          ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm ring-1 ring-primary/10'
+                          : 'text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:shadow-sm',
                       )}
                     >
                       <span

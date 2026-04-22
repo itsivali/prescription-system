@@ -189,7 +189,7 @@ function SpecialtiesSection() {
         </form>
         <div className="space-y-2">
           {data?.items?.map((s: { id: string; code: string; name: string; department?: { name: string } }) => (
-            <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
+            <div key={s.id} className="flex items-center justify-between rounded-xl border border-border/50 p-3.5">
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="font-mono text-xs">{s.code}</Badge>
                 <span className="text-sm font-medium">{s.name}</span>
@@ -371,7 +371,7 @@ function AuthorizationsSection() {
             }) => (
               <div
                 key={`${auth.specialtyId}-${auth.drugClassId}`}
-                className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30"
+                className="flex items-center justify-between rounded-xl border border-border/50 p-3.5 transition-all duration-200 hover:bg-accent/30 hover:shadow-sm"
               >
                 <div className="flex items-center gap-2 text-sm">
                   <Badge variant="outline" className="text-xs">{auth.specialty.name}</Badge>
@@ -468,7 +468,7 @@ function InsurancePoliciesSection() {
         <div className="space-y-2">
           {data?.items?.map(
             (p: { id: string; carrier: string; memberNumber: string; coveragePercent: number }) => (
-              <div key={p.id} className="flex items-center justify-between rounded-lg border p-3">
+              <div key={p.id} className="flex items-center justify-between rounded-xl border border-border/50 p-3.5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                     <FileHeart className="h-4 w-4" />

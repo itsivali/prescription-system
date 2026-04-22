@@ -38,7 +38,7 @@ export function TopNav() {
   }
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border/60 bg-background/80 px-6 backdrop-blur-sm">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border/40 bg-background/85 px-6 backdrop-blur-md shadow-[var(--shadow-topnav)]">
       <div>
         <h1 className="text-lg font-semibold tracking-tight">
           Welcome back,{' '}

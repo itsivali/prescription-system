@@ -40,7 +40,7 @@ function DashboardSkeleton() {
             <CardHeader className="pb-3"><div className="h-4 w-32 rounded animate-skeleton" /></CardHeader>
             <CardContent className="space-y-2.5">
               {[...Array(3)].map((_, j) => (
-                <div key={j} className="flex items-center gap-3 rounded-lg border p-3">
+                <div key={j} className="flex items-center gap-3 rounded-xl border border-border/50 p-3.5">
                   <div className="h-8 w-8 rounded-lg animate-skeleton" />
                   <div className="flex-1 space-y-1.5">
                     <div className="h-3.5 w-24 rounded animate-skeleton" />
@@ -144,7 +144,7 @@ export function AdminHome() {
             ) : (
               <div className="space-y-2">
                 {audit.items.slice(0, 5).map((event: Record<string, unknown>) => (
-                  <div key={String(event.id)} className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
+                  <div key={String(event.id)} className="flex items-center justify-between rounded-xl border border-border/50 p-3.5 transition-all duration-200 hover:bg-accent/30 hover:shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                         <FileText className="h-3.5 w-3.5" />
@@ -189,7 +189,7 @@ export function AdminHome() {
             ) : (
               <div className="space-y-2">
                 {invoices.items.map((inv: Record<string, unknown>) => (
-                  <div key={inv.id as string} className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
+                  <div key={inv.id as string} className="flex items-center justify-between rounded-xl border border-border/50 p-3.5 transition-all duration-200 hover:bg-accent/30 hover:shadow-sm">
                     <div>
                       <p className="text-sm font-medium">
                         {(inv.patient as { fullName: string })?.fullName ?? 'Patient'}

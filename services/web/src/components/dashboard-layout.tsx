@@ -9,7 +9,7 @@ export function DashboardLayout() {
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopNav />
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-background via-background to-accent/20 p-6">
           <PageTransition>
             <Outlet />
           </PageTransition>

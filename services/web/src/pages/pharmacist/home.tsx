@@ -43,7 +43,7 @@ function DashboardSkeleton() {
             <CardHeader className="pb-3"><div className="h-4 w-36 rounded animate-skeleton" /></CardHeader>
             <CardContent className="space-y-2.5">
               {[...Array(3)].map((_, j) => (
-                <div key={j} className="flex items-center gap-3 rounded-lg border p-3">
+                <div key={j} className="flex items-center gap-3 rounded-xl border border-border/50 p-3.5">
                   <div className="h-9 w-9 rounded-lg animate-skeleton" />
                   <div className="flex-1 space-y-1.5">
                     <div className="h-3.5 w-28 rounded animate-skeleton" />
@@ -155,7 +155,7 @@ export function PharmacistHome() {
             ) : (
               <div className="space-y-2">
                 {pendingRx.items.map((rx: Record<string, unknown>) => (
-                  <div key={rx.id as string} className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
+                  <div key={rx.id as string} className="flex items-center justify-between rounded-xl border border-border/50 p-3.5 transition-all duration-200 hover:bg-accent/30 hover:shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
                         <Pill className="h-4 w-4" />
@@ -196,7 +196,7 @@ export function PharmacistHome() {
             ) : (
               <div className="space-y-2">
                 {expiring.items.slice(0, 5).map((b: Record<string, unknown>) => (
-                  <div key={b.id as string} className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30">
+                  <div key={b.id as string} className="flex items-center justify-between rounded-xl border border-border/50 p-3.5 transition-all duration-200 hover:bg-accent/30 hover:shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning/10 text-warning">
                         <AlertTriangle className="h-4 w-4" />

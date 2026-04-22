@@ -2,10 +2,7 @@
 
 @theme {
   /* ── Warm Hospital Palette ────────────────────────────────────────────── */
-  /* Primary: Warm terracotta-teal — trustworthy, clinical, inviting        */
-  /* Accents: Warm stone/amber neutrals for a cozy, professional feel       */
-
-  --color-background: #faf8f6;
+  --color-background: #f8f6f3;
   --color-foreground: #1c1917;
   --color-card: #ffffff;
   --color-card-foreground: #1c1917;
@@ -14,29 +11,29 @@
 
   --color-primary: #0d7377;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f5f0eb;
+  --color-secondary: #f0ebe5;
   --color-secondary-foreground: #1c1917;
 
-  --color-muted: #f5f0eb;
+  --color-muted: #f0ebe5;
   --color-muted-foreground: #78716c;
 
-  --color-accent: #e8f4f3;
+  --color-accent: #e4f2f1;
   --color-accent-foreground: #0d7377;
 
   --color-destructive: #dc2626;
   --color-destructive-foreground: #ffffff;
 
-  --color-border: #e7e0d8;
-  --color-input: #e7e0d8;
+  --color-border: #e2dbd2;
+  --color-input: #e2dbd2;
   --color-ring: #0d7377;
 
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 
   /* Sidebar */
-  --color-sidebar: #f7f4f1;
+  --color-sidebar: #fbfaf8;
   --color-sidebar-foreground: #1c1917;
-  --color-sidebar-border: #e7e0d8;
-  --color-sidebar-accent: #e8f4f3;
+  --color-sidebar-border: #ebe5dd;
+  --color-sidebar-accent: #e4f2f1;
   --color-sidebar-accent-foreground: #0d7377;
   --color-sidebar-muted: #78716c;
 
@@ -55,7 +52,7 @@
   --color-chart-4: #16a34a;
   --color-chart-5: #9333ea;
 
-  /* Extended palette for colorful accents */
+  /* Extended palette */
   --color-rose: #e11d48;
   --color-violet: #7c3aed;
   --color-indigo: #4f46e5;
@@ -63,6 +60,20 @@
   --color-emerald: #059669;
   --color-amber: #d97706;
   --color-orange: #ea580c;
+
+  /* ── Shadow system ────────────────────────────────────────────────────── */
+  --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.04), 0 4px 14px -2px rgba(0,0,0,0.06);
+  --shadow-card-hover: 0 4px 16px -2px rgba(0,0,0,0.08), 0 8px 28px -4px rgba(0,0,0,0.1);
+  --shadow-elevated: 0 8px 30px -4px rgba(0,0,0,0.1), 0 2px 8px -2px rgba(0,0,0,0.06);
+  --shadow-dialog: 0 20px 60px -8px rgba(0,0,0,0.2), 0 8px 24px -6px rgba(0,0,0,0.1);
+  --shadow-sidebar: 2px 0 20px -2px rgba(0,0,0,0.06);
+  --shadow-topnav: 0 1px 12px -2px rgba(0,0,0,0.06);
+  --shadow-button: 0 1px 3px 0 rgba(13,115,119,0.2), 0 2px 8px -1px rgba(13,115,119,0.15);
+  --shadow-button-hover: 0 4px 12px -1px rgba(13,115,119,0.3), 0 2px 6px -1px rgba(13,115,119,0.2);
+  --shadow-input-focus: 0 0 0 3px rgba(13,115,119,0.12);
+  --shadow-badge: 0 1px 4px -1px rgba(0,0,0,0.08);
+  --shadow-stat: 0 2px 8px -2px rgba(0,0,0,0.06), 0 6px 20px -4px rgba(0,0,0,0.08);
+  --shadow-stat-hover: 0 8px 28px -4px rgba(0,0,0,0.1), 0 4px 12px -2px rgba(0,0,0,0.06);
 }
 
 @layer base {
@@ -82,7 +93,7 @@
       sans-serif;
   }
 
-  /* Smooth scrollbar styling */
+  /* Smooth scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -101,13 +112,16 @@
 
 @layer utilities {
   .animate-fade-in {
-    animation: fadeIn 0.4s ease-out;
+    animation: fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .animate-slide-up {
-    animation: slideUp 0.35s ease-out;
+    animation: slideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .animate-slide-in-left {
-    animation: slideInLeft 0.3s ease-out;
+    animation: slideInLeft 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .animate-scale-in {
+    animation: scaleIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .animate-skeleton {
     animation: skeleton 1.8s ease-in-out infinite;
@@ -117,19 +131,26 @@
   .animate-pulse-soft {
     animation: pulseSoft 2s ease-in-out infinite;
   }
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-12px); }
+  from { opacity: 0; transform: translateX(-16px); }
   to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
 }
 @keyframes skeleton {
   0%   { background-position: 200% 0; }
@@ -138,4 +159,8 @@
 @keyframes pulseSoft {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.5; }
+}
+@keyframes glow {
+  from { box-shadow: 0 0 8px -2px rgba(13,115,119,0.2); }
+  to   { box-shadow: 0 0 16px -2px rgba(13,115,119,0.35); }
 }

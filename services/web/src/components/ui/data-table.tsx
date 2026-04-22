@@ -29,10 +29,10 @@ export function DataTable<T>({
   onRowClick,
 }: DataTableProps<T>) {
   return (
-    <div className="w-full overflow-auto rounded-xl border border-border/60 bg-card shadow-sm">
+    <div className="w-full overflow-auto rounded-2xl border border-border/50 bg-card shadow-[var(--shadow-card)]">
       <table className="w-full caption-bottom text-sm">
         <thead>
-          <tr className="border-b border-border/60 bg-muted/30">
+          <tr className="border-b border-border/50 bg-muted/40">
             {columns.map((col) => (
               <th
                 key={col.key}
@@ -71,7 +71,7 @@ export function DataTable<T>({
                 key={keyExtractor(row)}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 className={cn(
-                  'border-b border-border/40 transition-colors duration-150 last:border-0 hover:bg-muted/20',
+                  'border-b border-border/40 transition-colors duration-200 last:border-0 hover:bg-accent/40',
                   onRowClick && 'cursor-pointer',
                 )}
               >

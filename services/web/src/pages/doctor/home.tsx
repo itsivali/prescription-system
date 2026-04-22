@@ -45,7 +45,7 @@ function DashboardSkeleton() {
             <CardHeader className="pb-3"><div className="h-4 w-36 rounded animate-skeleton" /></CardHeader>
             <CardContent className="space-y-2.5">
               {[...Array(3)].map((_, j) => (
-                <div key={j} className="flex items-center gap-3 rounded-lg border p-3">
+                <div key={j} className="flex items-center gap-3 rounded-xl border border-border/50 p-3.5">
                   <div className="h-9 w-9 rounded-full animate-skeleton" />
                   <div className="flex-1 space-y-1.5">
                     <div className="h-3.5 w-28 rounded animate-skeleton" />
@@ -139,7 +139,7 @@ export function DoctorHome() {
 
         {isOnShift ? (
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/5 px-3 py-2">
+            <div className="flex items-center gap-2 rounded-xl border border-success/30 bg-success/5 px-3.5 py-2 shadow-sm">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success" />
@@ -218,7 +218,7 @@ export function DoctorHome() {
                 {encounters.items.map((enc: Record<string, unknown>) => (
                   <div
                     key={enc.id as string}
-                    className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30"
+                    className="flex items-center justify-between rounded-xl border border-border/50 p-3.5 transition-all duration-200 hover:bg-accent/30 hover:shadow-sm"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
@@ -272,7 +272,7 @@ export function DoctorHome() {
                 {prescriptions.items.map((rx: Record<string, unknown>) => (
                   <div
                     key={rx.id as string}
-                    className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/30"
+                    className="flex items-center justify-between rounded-xl border border-border/50 p-3.5 transition-all duration-200 hover:bg-accent/30 hover:shadow-sm"
                   >
                     <div>
                       <p className="text-sm font-medium">
