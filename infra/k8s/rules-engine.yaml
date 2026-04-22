@@ -1,0 +1,123 @@
+###############################################################################
+# Rules Engine — internal-only service. Enforces canPrescribe, signs QR JWTs,
+# and orchestrates the dispense+billing transaction. NEVER exposed externally.
+###############################################################################
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rules-engine
+  namespace: hospital
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rules-engine
+  namespace: hospital
+  labels: { app: rules-engine, tier: core }
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
+  selector:
+    matchLabels: { app: rules-engine }
+  template:
+    metadata:
+      labels: { app: rules-engine, tier: core }
+    spec:
+      serviceAccountName: rules-engine
+      automountServiceAccountToken: false
+      nodeSelector: { workload: rules-engine }
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10002
+        fsGroup: 10002
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: rules-engine
+          image: ghcr.io/hospital-crm/rules-engine:1.0.0
+          ports:
+            - containerPort: 8081
+              name: http
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: db-credentials, key: url } }
+            - name: REDIS_URL
+              valueFrom: { secretKeyRef: { name: redis-credentials, key: url } }
+            - name: JWT_PRIVATE_KEY_PATH
+              value: /var/run/secrets/jwt/private.pem
+            - name: JWT_PUBLIC_KEY_PATH
+              value: /var/run/secrets/jwt/public.pem
+          volumeMounts:
+            - name: jwt-keys
+              mountPath: /var/run/secrets/jwt
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests: { cpu: "300m", memory: "384Mi" }
+            limits:   { cpu: "1500m", memory: "1Gi"  }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: jwt-keys
+          secret: { secretName: jwt-keypair, defaultMode: 0400 }
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rules-engine
+  namespace: hospital
+spec:
+  type: ClusterIP
+  selector: { app: rules-engine }
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+---
+# Lock down rules-engine: only api-gateway may talk to it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: rules-engine-isolation
+  namespace: hospital
+spec:
+  podSelector: { matchLabels: { app: rules-engine } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app: api-gateway } }
+      ports: [{ protocol: TCP, port: 8081 }]
+  egress:
+    - to:
+        - ipBlock: { cidr: 0.0.0.0/0, except: ["169.254.0.0/16"] }
+      ports:
+        - { protocol: TCP, port: 5432 }
+        - { protocol: TCP, port: 6379 }
+        - { protocol: TCP, port: 53 }
+        - { protocol: UDP, port: 53 }
+---
+# PodDisruptionBudget — keep at least one rules-engine pod available always.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: rules-engine
+  namespace: hospital
+spec:
+  minAvailable: 1
+  selector: { matchLabels: { app: rules-engine } }

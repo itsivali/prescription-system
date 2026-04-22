@@ -1,0 +1,374 @@
+// =============================================================================
+// Hospital CRM — core relational schema (Prisma + Postgres)
+// Goals:
+//   * Strict referential integrity across Clinical / Pharmacy / Billing
+//   * Immutable financial trail (LedgerTransaction is append-only at the DB
+//     level via a trigger; see prisma/migrations/.../immutable_ledger.sql)
+//   * Drug lifecycle tracking via DrugBatch with FIFO-friendly indexes
+//   * Auditable prescription state transitions (PrescriptionStatus)
+// =============================================================================
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// IDENTITY / AUTH
+// -----------------------------------------------------------------------------
+
+enum Role {
+  DOCTOR
+  PHARMACIST
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?                    // nullable — OAuth-only users have no password
+  fullName     String
+  role         Role
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  lastLoginAt  DateTime?
+
+  doctorProfile DoctorProfile?     // 1:1, only for role=DOCTOR
+  refreshTokens RefreshToken[]
+  dispensations Dispensation[]     // pharmacist FK target
+  accounts      Account[]          // OAuth provider links
+
+  @@index([role, isActive])
+}
+
+// OAuth provider accounts — allows multiple providers linked to one User.
+// Follows the "account linking" pattern: a user signs up with email/password,
+// then links Google/Apple/Microsoft from settings (or vice versa).
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  provider          String               // "google" | "microsoft" | "apple"
+  providerAccountId String               // the sub / oid from the IdP
+  accessToken       String?              // encrypted at rest if stored
+  refreshToken      String?              // encrypted at rest if stored
+  tokenExpiresAt    DateTime?
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId]) // one link per provider identity
+  @@index([userId])
+}
+
+// Refresh tokens — only the SHA-256 hash is stored. Rotation on each use.
+model RefreshToken {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime @default(now())
+  rotatedTo  String?               // id of token that replaced this one
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, expiresAt])
+}
+
+// -----------------------------------------------------------------------------
+// CLINICAL DIRECTORY
+// -----------------------------------------------------------------------------
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  doctors   DoctorProfile[]
+  specialties Specialty[]
+}
+
+model Specialty {
+  id           String  @id @default(cuid())
+  code         String  @unique         // e.g. "CARDIO", "PSYCH"
+  name         String
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  doctors                 DoctorProfile[]
+  authorizedDrugClasses   SpecialtyDrugClass[]
+}
+
+model DoctorProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  licenseNo    String   @unique
+  departmentId String
+  specialtyId  String
+
+  // Active-shift state — flipped by clock-in / clock-out endpoints.
+  // shiftEndsAt is nullable: null means "not on shift right now".
+  shiftStartedAt DateTime?
+  shiftEndsAt    DateTime?
+
+  user          User          @relation(fields: [userId],       references: [id])
+  department    Department    @relation(fields: [departmentId], references: [id])
+  specialty     Specialty     @relation(fields: [specialtyId],  references: [id])
+  encounters    Encounter[]
+  prescriptions Prescription[]
+
+  @@index([shiftEndsAt])
+}
+
+model Patient {
+  id            String   @id @default(cuid())
+  mrn           String   @unique          // Medical Record Number
+  fullName      String
+  dateOfBirth   DateTime
+  insuranceId   String?
+  insurance     InsurancePolicy? @relation(fields: [insuranceId], references: [id])
+
+  encounters    Encounter[]
+  prescriptions Prescription[]
+  invoices      Invoice[]
+}
+
+model Encounter {
+  id        String   @id @default(cuid())
+  patientId String
+  doctorId  String
+  notes     String?
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+
+  patient       Patient        @relation(fields: [patientId], references: [id])
+  doctor        DoctorProfile  @relation(fields: [doctorId],  references: [id])
+  prescriptions Prescription[]
+
+  // Composite index supports the canPrescribe lookup:
+  // "did doctor X have an encounter with patient Y in last 48h?"
+  @@index([doctorId, patientId, startedAt])
+}
+
+// -----------------------------------------------------------------------------
+// PHARMACY
+// -----------------------------------------------------------------------------
+
+model DrugClass {
+  id   String @id @default(cuid())
+  code String @unique          // e.g. "OPIOID", "ANTIBIOTIC", "PSYCHOTROPIC"
+  name String
+
+  drugs                Drug[]
+  authorizedSpecialties SpecialtyDrugClass[]
+}
+
+// Many-to-many: which specialties may prescribe which drug class
+model SpecialtyDrugClass {
+  specialtyId String
+  drugClassId String
+
+  specialty Specialty @relation(fields: [specialtyId], references: [id])
+  drugClass DrugClass @relation(fields: [drugClassId], references: [id])
+
+  @@id([specialtyId, drugClassId])
+}
+
+model Drug {
+  id          String  @id @default(cuid())
+  name        String
+  ndcCode     String  @unique           // National Drug Code
+  form        String                    // tablet / injection / syrup
+  strength    String                    // "500mg" / "10mg/mL"
+  drugClassId String
+  unitPriceCents Int                    // list price per unit, in cents
+
+  drugClass     DrugClass      @relation(fields: [drugClassId], references: [id])
+  batches       DrugBatch[]
+  prescriptions Prescription[]
+}
+
+model DrugBatch {
+  id            String   @id @default(cuid())
+  drugId        String
+  lotNumber     String
+  supplier      String
+  receivedAt    DateTime @default(now())
+  expiresAt     DateTime
+  quantityOnHand Int                  // decremented during dispensation
+  initialQuantity Int
+
+  drug          Drug @relation(fields: [drugId], references: [id])
+  dispensations DispensationLine[]
+
+  // FIFO index: pull the oldest non-expired batch with stock first.
+  @@index([drugId, expiresAt])
+  @@unique([drugId, lotNumber])
+}
+
+// -----------------------------------------------------------------------------
+// PRESCRIPTIONS
+// -----------------------------------------------------------------------------
+
+enum PrescriptionStatus {
+  PENDING
+  FULFILLED
+  VOID
+  EXPIRED
+}
+
+model Prescription {
+  id           String   @id @default(cuid())
+  encounterId  String
+  patientId    String
+  doctorId     String
+  drugId       String
+  quantity     Int
+  dosage       String                       // free-text directions
+  status       PrescriptionStatus @default(PENDING)
+  // Cryptographic nonce — stored so we can reject replay attempts.
+  nonce        String   @unique
+  // SHA-256 hash displayed on prescription invoice — used for pharmacy lookup.
+  qrHash       String   @unique
+  signedAt     DateTime @default(now())
+  expiresAt    DateTime                     // typically signedAt + 24h
+  fulfilledAt  DateTime?
+  voidReason   String?
+
+  encounter   Encounter     @relation(fields: [encounterId], references: [id])
+  patient     Patient       @relation(fields: [patientId],   references: [id])
+  doctor      DoctorProfile @relation(fields: [doctorId],    references: [id])
+  drug        Drug          @relation(fields: [drugId],      references: [id])
+  dispensation Dispensation?
+
+  @@index([patientId, status])
+  @@index([doctorId, signedAt])
+}
+
+model Dispensation {
+  id             String   @id @default(cuid())
+  prescriptionId String   @unique
+  pharmacistId   String
+  dispensedAt    DateTime @default(now())
+
+  prescription Prescription      @relation(fields: [prescriptionId], references: [id])
+  pharmacist   User              @relation(fields: [pharmacistId],   references: [id])
+  lines        DispensationLine[]
+  invoice      Invoice?
+}
+
+// One row per batch consumed (a single dispense may pull from multiple batches
+// if the oldest batch is partially depleted).
+model DispensationLine {
+  id             String @id @default(cuid())
+  dispensationId String
+  drugBatchId    String
+  quantity       Int
+
+  dispensation Dispensation @relation(fields: [dispensationId], references: [id])
+  drugBatch    DrugBatch    @relation(fields: [drugBatchId],    references: [id])
+}
+
+// -----------------------------------------------------------------------------
+// BILLING
+// -----------------------------------------------------------------------------
+
+model InsurancePolicy {
+  id              String  @id @default(cuid())
+  carrier         String
+  memberNumber    String
+  coveragePercent Int                       // 0..100, applied to copay split
+
+  patients Patient[]
+  claims   InsuranceClaim[]
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  MPESA
+}
+
+enum InvoiceStatus {
+  OPEN
+  PAID
+  WRITTEN_OFF
+}
+
+model Invoice {
+  id             String   @id @default(cuid())
+  patientId      String
+  dispensationId String?  @unique
+  totalCents     Int
+  copayCents     Int                        // patient portion
+  insuredCents   Int                        // claim portion
+  status         InvoiceStatus @default(OPEN)
+  createdAt      DateTime @default(now())
+
+  patient       Patient        @relation(fields: [patientId],      references: [id])
+  dispensation  Dispensation?  @relation(fields: [dispensationId], references: [id])
+  claim         InsuranceClaim?
+  ledgerEntries LedgerTransaction[]
+}
+
+enum ClaimStatus {
+  SUBMITTED
+  ACCEPTED
+  REJECTED
+  PAID
+}
+
+model InsuranceClaim {
+  id          String   @id @default(cuid())
+  invoiceId   String   @unique
+  policyId    String
+  amountCents Int
+  status      ClaimStatus @default(SUBMITTED)
+  submittedAt DateTime @default(now())
+
+  invoice Invoice         @relation(fields: [invoiceId], references: [id])
+  policy  InsurancePolicy @relation(fields: [policyId],  references: [id])
+}
+
+// Append-only. UPDATE / DELETE rejected by a Postgres trigger installed via
+// migration (see prisma/migrations/<n>_immutable_ledger/migration.sql).
+// Each transaction is hash-chained to the previous one (prevHash) so any
+// tampering downstream becomes detectable.
+model LedgerTransaction {
+  id             String   @id @default(cuid())
+  invoiceId      String
+  amountCents    Int
+  direction      String   // "DEBIT" | "CREDIT"
+  memo           String
+  paymentMethod  PaymentMethod?            // set on DEBIT entries (payments)
+  occurredAt     DateTime @default(now())
+  prevHash       String?
+  hash           String   @unique
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId, occurredAt])
+}
+
+// -----------------------------------------------------------------------------
+// AUDIT
+// -----------------------------------------------------------------------------
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  actorId   String?              // doctor / pharmacist / system
+  actorRole String
+  action    String               // "PRESCRIPTION_CREATE", "DISPENSE", ...
+  entity    String               // "Prescription", "DrugBatch", ...
+  entityId  String
+  payload   Json
+  occurredAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorId, occurredAt])
+}

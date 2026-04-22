@@ -1,0 +1,21 @@
+[build]
+  base = "services/web"
+  command = "pnpm install && pnpm build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Proxy /api/* requests to the backend server.
+# Set API_URL in Netlify environment variables (e.g. https://your-api.onrender.com/v1)
+[[redirects]]
+  from = "/api/*"
+  to = "${API_URL}/:splat"
+  status = 200
+  force = true
+
+# SPA fallback — serve index.html for all client-side routes
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

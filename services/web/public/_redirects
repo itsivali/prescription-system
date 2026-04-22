@@ -1,0 +1,2 @@
+/api/*  https://prescription-api-latest.onrender.com/v1/:splat  200
+/*      /index.html                                             200
