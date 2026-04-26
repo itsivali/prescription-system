@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { prisma } from '../db';
 import { Conflict, NotFound, BadRequest, Forbidden } from '../http/errors';
 import { canPrescribe } from './canPrescribe';
-import { generatePrescriptionHash } from './qrCrypto';
+import { generatePrescriptionHash, toPatientPickupCode } from './qrCrypto';
 
 export type CreatePrescriptionInput = {
   /** User id of the doctor (User.id, not DoctorProfile.id). */
@@ -17,6 +17,7 @@ export type CreatePrescriptionInput = {
 export type CreatePrescriptionResult = {
   prescriptionId: string;
   prescriptionHash: string;
+  patientPickupCode: string;
   expiresAt: Date;
   patient: { fullName: string; mrn: string; dateOfBirth: Date };
   doctor: { fullName: string; specialty: string };
@@ -121,6 +122,7 @@ export async function createPrescription(
     return {
       prescriptionId:   draft.id,
       prescriptionHash: signed.prescriptionHash,
+      patientPickupCode: toPatientPickupCode(signed.prescriptionHash),
       expiresAt:        signed.expiresAt,
       patient: {
         fullName:    patient.fullName,

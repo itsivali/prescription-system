@@ -1,4 +1,5 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, createHmac, randomBytes } from 'node:crypto';
+import { env } from '../env';
 
 const TTL_SEC = 24 * 60 * 60; // prescriptions expire in 24h
 
@@ -25,4 +26,37 @@ export function generatePrescriptionHash(payload: {
   const prescriptionHash = createHash('sha256').update(body).digest('hex');
 
   return { prescriptionHash, nonce, expiresAt };
+}
+
+/**
+ * Patient-facing pickup code:
+ *  - easy to read/say (3 groups of 4 chars)
+ *  - derived from secure hash + server secret
+ *  - does not expose full hash
+ */
+export function toPatientPickupCode(prescriptionHash: string): string {
+  const normalized = prescriptionHash.trim().toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(normalized)) throw new Error('invalid_prescription_hash');
+
+  const prefix = normalized.slice(0, 4).toUpperCase();
+  const suffix = normalized.slice(-4).toUpperCase();
+  const check = createHmac('sha256', env.SESSION_SECRET)
+    .update(normalized)
+    .digest('hex')
+    .slice(0, 4)
+    .toUpperCase();
+
+  return `${prefix}-${check}-${suffix}`;
+}
+
+export function normalizePickupCode(input: string): string {
+  return input.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+}
+
+export function looksLikeFullPrescriptionHash(input: string): boolean {
+  return /^[a-f0-9]{64}$/i.test(input.trim());
+}
+
+export function looksLikePickupCode(input: string): boolean {
+  return /^[A-Za-z0-9\-]{8,16}$/.test(input.trim());
 }

@@ -84,7 +84,15 @@ export function PharmacistHome() {
     },
   });
 
-  const initialLoading = loadingDisp && loadingExp && loadingRx;
+  const { data: drugs, isLoading: loadingDrugs } = useQuery({
+    queryKey: ['drugs', 'inventory-overview'],
+    queryFn: async () => {
+      const res = await api.get('/drugs', { params: { take: 1 } });
+      return res.data as { total?: number };
+    },
+  });
+
+  const initialLoading = loadingDisp && loadingExp && loadingRx && loadingDrugs;
 
   if (initialLoading) return <DashboardSkeleton />;
 
@@ -111,12 +119,14 @@ export function PharmacistHome() {
           subtitle="Awaiting dispensation"
           icon={<ClipboardList className="h-5 w-5" />}
           color="amber"
+          to="/pharmacist/scan"
         />
         <StatCard
           title="Dispensed Today"
           value={dispensations?.items?.length ?? 0}
           icon={<Pill className="h-5 w-5" />}
           color="emerald"
+          to="/pharmacist/dispensations"
         />
         <StatCard
           title="Expiring Batches"
@@ -124,13 +134,15 @@ export function PharmacistHome() {
           subtitle="Within 30 days"
           icon={<AlertTriangle className="h-5 w-5" />}
           color="orange"
+          to="/pharmacist/inventory"
         />
         <StatCard
           title="Inventory"
-          value="Active"
-          subtitle="FIFO tracking enabled"
+          value={drugs?.total ?? '—'}
+          subtitle="Tracked medications"
           icon={<Package className="h-5 w-5" />}
           color="cyan"
+          to="/pharmacist/inventory"
         />
       </div>
 

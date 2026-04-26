@@ -104,23 +104,27 @@ export function AdminHome() {
           value={onShiftCount}
           subtitle={`${doctors?.items?.length ?? 0} total registered`}
           icon={<Users className="h-5 w-5" />}
+          to="/admin/users"
         />
         <StatCard
           title="Open Invoices"
           value={invoices?.total ?? 0}
           icon={<DollarSign className="h-5 w-5" />}
+          to="/admin/billing"
         />
         <StatCard
           title="Audit Events"
           value={audit?.items?.length ?? 0}
           subtitle="Most recent"
           icon={<FileText className="h-5 w-5" />}
+          to="/admin/audit"
         />
         <StatCard
           title="System"
           value="Healthy"
           subtitle="All services operational"
           icon={<ShieldCheck className="h-5 w-5" />}
+          to="/admin/settings"
         />
       </div>
 

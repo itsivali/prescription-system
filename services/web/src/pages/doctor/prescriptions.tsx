@@ -56,6 +56,7 @@ type Prescription = {
 type PrescriptionInvoice = {
   prescriptionId: string;
   prescriptionHash: string;
+  patientPickupCode: string;
   expiresAt: string;
   patient: { fullName: string; mrn: string; dateOfBirth: string };
   doctor: { fullName: string; specialty: string };
@@ -158,13 +159,21 @@ export function PrescriptionsPage() {
 // Prescription Invoice — displayed after the doctor creates a prescription
 // ---------------------------------------------------------------------------
 function PrescriptionInvoiceView({ invoice }: { invoice: PrescriptionInvoice }) {
-  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedHash, setCopiedHash] = useState(false);
+
+  const copyPickupCode = () => {
+    navigator.clipboard.writeText(invoice.patientPickupCode);
+    setCopiedCode(true);
+    toast.success('Pickup code copied');
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
 
   const copyHash = () => {
     navigator.clipboard.writeText(invoice.prescriptionHash);
-    setCopied(true);
-    toast.success('Prescription hash copied');
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedHash(true);
+    toast.success('Secure hash copied');
+    setTimeout(() => setCopiedHash(false), 2000);
   };
 
   return (
@@ -176,29 +185,46 @@ function PrescriptionInvoiceView({ invoice }: { invoice: PrescriptionInvoice }) 
           </div>
           Prescription Invoice
         </DialogTitle>
-        <DialogDescription>
-          Present this hash to the pharmacy to collect medication
-        </DialogDescription>
+        <DialogDescription>Give this pickup code to the pharmacist to collect medication</DialogDescription>
       </DialogHeader>
 
       <div className="space-y-4">
-        {/* Prescription Hash — prominent display */}
+        {/* Patient-facing pickup code */}
         <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 text-center">
           <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Prescription Code
+            Patient Pickup Code
           </p>
-          <p className="break-all font-mono text-sm font-bold text-primary leading-relaxed">
-            {invoice.prescriptionHash}
+          <p className="font-mono text-2xl font-bold tracking-[0.18em] text-primary">
+            {invoice.patientPickupCode}
           </p>
           <Button
             variant="outline"
             size="sm"
             className="mt-3 gap-1.5 text-xs"
-            onClick={copyHash}
+            onClick={copyPickupCode}
           >
-            {copied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-            {copied ? 'Copied' : 'Copy Code'}
+            {copiedCode ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+            {copiedCode ? 'Copied' : 'Copy Pickup Code'}
           </Button>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Easy to remember, cryptographically tied to the secure prescription hash.
+          </p>
+        </div>
+
+        {/* Full secure hash */}
+        <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Secure Prescription Hash
+            </p>
+            <Button variant="ghost" size="sm" className="h-7 gap-1.5 px-2 text-xs" onClick={copyHash}>
+              {copiedHash ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {copiedHash ? 'Copied' : 'Copy'}
+            </Button>
+          </div>
+          <p className="mt-1 break-all font-mono text-[11px] font-medium text-foreground/80">
+            {invoice.prescriptionHash}
+          </p>
         </div>
 
         {/* Patient */}
@@ -247,26 +273,36 @@ function PrescriptionInvoiceView({ invoice }: { invoice: PrescriptionInvoice }) 
 
         <Separator />
 
-        {/* Billing */}
+        {/* Billing table */}
         <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
             <Banknote className="h-4 w-4" />
           </div>
           <div className="flex-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Billing (KES)</p>
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              <div className="rounded-lg bg-muted/50 p-2.5 text-center">
-                <p className="text-[10px] text-muted-foreground">Total</p>
-                <p className="text-sm font-bold">{formatKES(invoice.totalCents)}</p>
-              </div>
-              <div className="rounded-lg bg-muted/50 p-2.5 text-center">
-                <p className="text-[10px] text-muted-foreground">Copay</p>
-                <p className="text-sm font-bold">{formatKES(invoice.copayCents)}</p>
-              </div>
-              <div className="rounded-lg bg-muted/50 p-2.5 text-center">
-                <p className="text-[10px] text-muted-foreground">Insurance</p>
-                <p className="text-sm font-bold">{formatKES(invoice.insuredCents)}</p>
-              </div>
+            <div className="mt-2 overflow-hidden rounded-lg border border-border/60">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-3 py-2 font-semibold text-muted-foreground">Item</th>
+                    <th className="px-3 py-2 text-right font-semibold text-muted-foreground">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-border/60">
+                    <td className="px-3 py-2">Medication total</td>
+                    <td className="px-3 py-2 text-right font-medium">{formatKES(invoice.totalCents)}</td>
+                  </tr>
+                  <tr className="border-t border-border/60">
+                    <td className="px-3 py-2">Insurance covered</td>
+                    <td className="px-3 py-2 text-right font-medium">{formatKES(invoice.insuredCents)}</td>
+                  </tr>
+                  <tr className="border-t border-border/60 bg-primary/5">
+                    <td className="px-3 py-2 font-semibold">Patient copay</td>
+                    <td className="px-3 py-2 text-right font-semibold">{formatKES(invoice.copayCents)}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
             {invoice.insuranceCarrier && (
               <p className="mt-1.5 text-xs text-muted-foreground">

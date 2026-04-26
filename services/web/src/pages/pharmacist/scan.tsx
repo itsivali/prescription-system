@@ -47,8 +47,8 @@ export function ScanPage() {
   const [error, setError] = useState('');
 
   const dispense = useMutation({
-    mutationFn: async (hash: string) => {
-      const res = await api.post('/dispensations', { qrHash: hash });
+    mutationFn: async (code: string) => {
+      const res = await api.post('/dispensations', { code });
       return res.data as DispenseResult;
     },
     onSuccess: (data) => {
@@ -88,7 +88,7 @@ export function ScanPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Dispense Medication</h2>
         <p className="text-sm text-muted-foreground">
-          Enter the prescription code from the patient's invoice to validate and dispense
+          Enter the patient pickup code (or full prescription hash) from the invoice to validate and dispense
         </p>
       </div>
 
@@ -100,7 +100,7 @@ export function ScanPage() {
           </div>
           <h3 className="text-lg font-semibold">Prescription Verification</h3>
           <p className="mt-1 text-sm text-teal-100">
-            Enter the prescription code from the patient's invoice
+            Enter the code shown on the patient's invoice
           </p>
         </div>
         <CardContent className="p-6">
@@ -117,18 +117,18 @@ export function ScanPage() {
               </Label>
               <Input
                 id="prescriptionHash"
-                placeholder="Enter 64-character prescription code..."
+                placeholder="e.g. A1B2-C3D4-E5F6 (or 64-char hash)"
                 value={hashInput}
                 onChange={(e) => {
                   setHashInput(e.target.value);
                   setError('');
                 }}
-                className="h-11 font-mono text-sm"
-                maxLength={64}
+                className="h-11 font-mono text-sm uppercase"
+                maxLength={128}
                 autoFocus
               />
               <p className="text-[11px] text-muted-foreground">
-                The prescription code is printed on the patient's prescription invoice
+                Pharmacists can accept either the short pickup code or the full secure hash
               </p>
             </div>
             <Button

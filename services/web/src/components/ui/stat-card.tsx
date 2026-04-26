@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 
 const COLOR_MAP = {
   primary: {
@@ -53,6 +54,7 @@ export function StatCard({
   trend,
   color = 'primary',
   className,
+  to,
 }: {
   title: string;
   value: string | number;
@@ -61,13 +63,15 @@ export function StatCard({
   trend?: { value: string; positive: boolean };
   color?: StatColor;
   className?: string;
+  to?: string;
 }) {
   const c = COLOR_MAP[color];
-  return (
+  const content = (
     <div
       className={cn(
         'group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 transition-all duration-300',
         'shadow-[var(--shadow-stat)] hover:shadow-[var(--shadow-stat-hover)] hover:-translate-y-0.5',
+        to && 'cursor-pointer',
         className,
       )}
     >
@@ -99,5 +103,12 @@ export function StatCard({
         </div>
       </div>
     </div>
+  );
+
+  if (!to) return content;
+  return (
+    <Link to={to} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-2xl">
+      {content}
+    </Link>
   );
 }

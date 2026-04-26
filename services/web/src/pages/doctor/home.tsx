@@ -166,18 +166,21 @@ export function DoctorHome() {
           value={patients?.total ?? 0}
           icon={<Users className="h-5 w-5" />}
           color="blue"
+          to="/doctor/patients"
         />
         <StatCard
           title="Active Encounters"
           value={encounters?.items?.length ?? 0}
           icon={<Activity className="h-5 w-5" />}
           color="emerald"
+          to="/doctor/encounters"
         />
         <StatCard
           title="Prescriptions"
           value={prescriptions?.total ?? prescriptions?.items?.length ?? 0}
           icon={<ClipboardList className="h-5 w-5" />}
           color="violet"
+          to="/doctor/prescriptions"
         />
         <StatCard
           title="Shift Ends"

@@ -34,13 +34,15 @@ export async function generateInvoicePdf(invoiceId: string): Promise<PDFKit.PDFD
   const formatKES = (cents: number) => `KES ${(cents / 100).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
 
   // ── Hospital Header ──
-  doc.fontSize(20).font('Helvetica-Bold').text('Hospital CRM', { align: 'center' });
-  doc.fontSize(10).font('Helvetica').text('Prescription Invoice', { align: 'center' });
+  doc.roundedRect(50, 40, 495, 64, 10).fill('#f0f9ff');
+  doc.fillColor('#0f172a').fontSize(20).font('Helvetica-Bold').text('Hospital CRM', 50, 55, { align: 'center', width: 495 });
+  doc.fillColor('#334155').fontSize(10).font('Helvetica').text('Prescription Invoice', 50, 79, { align: 'center', width: 495 });
   doc.moveDown(0.5);
-  doc.fontSize(8).fillColor('#666')
+  doc.fontSize(8).fillColor('#64748b')
     .text(`Invoice #: ${invoice.id}`, { align: 'center' })
     .text(`Date: ${invoice.createdAt.toLocaleDateString('en-KE')}`, { align: 'center' });
   doc.moveDown(1);
+  doc.fillColor('#000');
 
   // ── Divider ──
   doc.strokeColor('#e0e0e0').lineWidth(1)
@@ -87,15 +89,16 @@ export async function generateInvoicePdf(invoiceId: string): Promise<PDFKit.PDFD
   const col2 = 350;
 
   // Table header
-  doc.fontSize(10).font('Helvetica-Bold');
+  doc.roundedRect(col1, tableTop - 4, 495, 22, 4).fill('#f8fafc');
+  doc.fillColor('#334155').fontSize(10).font('Helvetica-Bold');
   doc.text('Description', col1, tableTop);
   doc.text('Amount', col2, tableTop, { align: 'right', width: 195 });
 
-  doc.strokeColor('#ccc').lineWidth(0.5)
+  doc.strokeColor('#d1d5db').lineWidth(0.5)
     .moveTo(col1, tableTop + 15).lineTo(545, tableTop + 15).stroke();
 
   let y = tableTop + 25;
-  doc.font('Helvetica').fontSize(10);
+  doc.font('Helvetica').fontSize(10).fillColor('#111827');
 
   // Drug line item
   if (rx) {
@@ -117,13 +120,13 @@ export async function generateInvoicePdf(invoiceId: string): Promise<PDFKit.PDFD
 
   // Insurance breakdown
   if (invoice.insuredCents > 0 && invoice.claim) {
-    doc.font('Helvetica').fontSize(9).fillColor('#555');
+    doc.font('Helvetica').fontSize(9).fillColor('#475569');
     doc.text(`Insurance (${invoice.claim.policy.carrier})`, col1, y);
     doc.text(`- ${formatKES(invoice.insuredCents)}`, col2, y, { align: 'right', width: 195 });
     y += 18;
   }
 
-  doc.font('Helvetica-Bold').fontSize(10).fillColor('#000');
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#0f172a');
   doc.text('Patient Copay', col1, y);
   doc.text(formatKES(invoice.copayCents), col2, y, { align: 'right', width: 195 });
   y += 25;

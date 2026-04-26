@@ -7,14 +7,17 @@ import { Conflict, NotFound } from '../errors';
 
 export const dispensationsRouter = Router();
 
-const DispenseBody = z.object({ qrHash: z.string().length(64) });
+const DispenseBody = z.object({
+  code: z.string().min(8).max(128).optional(),
+  qrHash: z.string().length(64).optional(),
+});
 const IdParams = z.object({ id: z.string().min(1) });
 
 /** Pharmacist scans a QR and dispenses. Atomic: inventory + billing or rollback. */
 dispensationsRouter.post('/', authn, requireRole('PHARMACIST'), asyncHandler(async (req, res) => {
-  const { qrHash } = DispenseBody.parse(req.body);
+  const { code, qrHash } = DispenseBody.parse(req.body);
   const actor = (req as AuthedRequest).actor;
-  const result = await dispenseMedication({ qrHash, pharmacistId: actor.id });
+  const result = await dispenseMedication({ code: code ?? qrHash ?? '', pharmacistId: actor.id });
 
   if (!result.ok) {
     if (result.reason === 'PRESCRIPTION_NOT_FOUND') throw NotFound();

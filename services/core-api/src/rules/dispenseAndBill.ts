@@ -2,6 +2,12 @@ import { createHash } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { consumeNonce } from '../redis';
+import {
+  looksLikeFullPrescriptionHash,
+  looksLikePickupCode,
+  normalizePickupCode,
+  toPatientPickupCode,
+} from './qrCrypto';
 
 // ---------------------------------------------------------------------------
 // dispenseMedication
@@ -19,7 +25,7 @@ import { consumeNonce } from '../redis';
 // ---------------------------------------------------------------------------
 
 export type DispenseInput = {
-  qrHash: string;
+  code: string;
   pharmacistId: string;
 };
 
@@ -35,9 +41,12 @@ export type DispenseResult =
   | { ok: false; reason: string };
 
 export async function dispenseMedication(input: DispenseInput): Promise<DispenseResult> {
+  const qrHash = await resolvePrescriptionHashFromCode(input.code);
+  if (!qrHash) return { ok: false, reason: 'PRESCRIPTION_NOT_FOUND' };
+
   // (1) Look up prescription by QR hash.
   const rx = await prisma.prescription.findUnique({
-    where: { qrHash: input.qrHash },
+    where: { qrHash },
     select: {
       id: true,
       nonce: true,
@@ -234,3 +243,33 @@ export async function appendLedger(
 }
 
 class DispenseError extends Error {}
+
+async function resolvePrescriptionHashFromCode(rawCode: string): Promise<string | null> {
+  const input = rawCode.trim();
+
+  // Backward compatible path: full 64-char hash.
+  if (looksLikeFullPrescriptionHash(input)) return input.toLowerCase();
+
+  // Patient-facing code path.
+  if (!looksLikePickupCode(input)) return null;
+  const normalized = normalizePickupCode(input);
+  if (normalized.length !== 12) return null;
+
+  const prefix = normalized.slice(0, 4).toLowerCase();
+  const suffix = normalized.slice(8, 12).toLowerCase();
+
+  const candidates = await prisma.prescription.findMany({
+    where: {
+      status: 'PENDING',
+      expiresAt: { gt: new Date() },
+      qrHash: { startsWith: prefix, endsWith: suffix },
+    },
+    select: { qrHash: true },
+    take: 20,
+  });
+
+  const exact = candidates.filter((c) => normalizePickupCode(toPatientPickupCode(c.qrHash)) === normalized);
+  const [match] = exact;
+  if (exact.length !== 1 || !match) return null;
+  return match.qrHash;
+}
